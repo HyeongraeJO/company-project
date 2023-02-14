@@ -1,0 +1,187 @@
+### 3상 단락 고장
+
+
+#LDA
+import pandas as pd
+import matplotlib as mpl
+import numpy as np
+import matplotlib.pyplot as plt
+
+data=pd.read_excel('C:/Users/jhr96/Desktop/PYTHON/excel/fault_feature 3L_300.xls') 
+
+X=data.drop(['target','type'],axis=1)
+X_abc=data.filter(['VA_cm','VA_cph','IA_cm','IA_cph','VB_cm','VB_cph','IB_cm','IB_cph','VC_cm','VC_cph','IC_cm','IC_cph','VD_cm','VD_cph','ID_cm','ID_cph','VA_am','VA_aph','IA_am','IA_aph','VB_am','VB_aph','IB_am','IB_aph','VC_am','VC_aph','IC_am','IC_aph','VD_am','VD_aph','ID_am','ID_aph','VA_bm','VA_bph','IA_bm','IA_bph','VB_bm','VB_bph','IB_bm','IB_bph','VC_bm','VC_bph','IC_bm','IC_bph','VD_bm','VD_bph','ID_bm','ID_bph'])
+
+
+#X_a=data.filter(['VA_am','VA_aph','IA_am','IA_aph','VB_am','VB_aph','IB_am','IB_aph',] ['VC_am','VC_aph','IC_am','IC_aph','VD_am','VD_aph','ID_am','ID_aph'])
+#X_b=data.filter(['VA_bm','VA_bph','IA_bm','IA_bph','VB_bm','VB_bph','IB_bm','IB_bph',] ['VC_bm','VC_bph','IC_bm','IC_bph','VD_bm','VD_bph','ID_bm','ID_bph'])
+#X_c=data.filter(['VA_cm','VA_cph','IA_cm','IA_cph','VB_cm','VB_cph','IB_cm','IB_cph',] ['VC_cm','VC_cph','IC_cm','IC_cph','VD_cm','VD_cph','ID_cm','ID_cph'])
+
+
+y=data.filter(['target'])
+z=data.filter(['type'])
+
+
+row=y.shape[0]
+yy=y.to_numpy()
+z=z.to_numpy()
+
+
+
+# one-hot     
+for i in range(0,row):  # 3상 단락 고장 
+
+    yy[i]=yy[i]
+
+yy=pd.DataFrame(yy)
+z_1=pd.DataFrame(z)
+
+#test data
+data_te=pd.read_excel('C:/Users/jhr96/Desktop/PYTHON/excel/fault_feature 3L_100.xls')
+
+X_abc_te=data_te.filter(['VA_cm','VA_cph','IA_cm','IA_cph','VB_cm','VB_cph','IB_cm','IB_cph','VC_cm','VC_cph','IC_cm','IC_cph','VD_cm','VD_cph','ID_cm','ID_cph','VA_am','VA_aph','IA_am','IA_aph','VB_am','VB_aph','IB_am','IB_aph','VC_am','VC_aph','IC_am','IC_aph','VD_am','VD_aph','ID_am','ID_aph','VA_bm','VA_bph','IA_bm','IA_bph','VB_bm','VB_bph','IB_bm','IB_bph','VC_bm','VC_bph','IC_bm','IC_bph','VD_bm','VD_bph','ID_bm','ID_bph'])
+
+
+#X_a_te=data.filter(['VA_am','VA_aph','IA_am','IA_aph','VB_am','VB_aph','IB_am','IB_aph'])
+#X_b_te=data.filter(['VA_bm','VA_bph','IA_bm','IA_bph','VB_bm','VB_bph','IB_bm','IB_bph'])
+#X_c_te=data.filter(['VA_cm','VA_cph','IA_cm','IA_cph','VB_cm','VB_cph','IB_cm','IB_cph'])
+
+
+y_te=data_te.filter(['target'])
+z_te=data_te.filter(['type'])
+
+row_te=y_te.shape[0]
+yy_te=y_te.to_numpy()
+z_te=z_te.to_numpy()
+
+for i in range(0,row_te-1): # 3상 단락 고장 
+
+    yy_te[i]=yy_te[i]   
+
+
+yy_te=pd.DataFrame(yy_te)
+
+
+#tn_lda
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+lda=LinearDiscriminantAnalysis(n_components=3)
+lda.fit(X_abc,y)
+#lda.fit(X_b,y)
+#lda.fit(X_c,y)
+
+Xabc_lda=lda.transform(X_abc)
+#Xb_lda=lda.transform(X_b)
+#Xc_lda=lda.transform(X_c)
+
+################################
+print( '\nLDA 적용 후 데이터 셋')
+lda_columns = ['lda_comp1', 'lda_comp2', 'lda_comp3']
+
+
+Xabc_lda_df = pd.DataFrame(Xabc_lda, columns = lda_columns)
+
+Xabc_lda_df['target'] = y
+
+print( '\n head(5) 출력 결과 : ')
+print(Xabc_lda_df.head(5))
+
+# 3차원!!!!
+# 3차원 그래프세팅
+fig = plt.figure(figsize=(9,6))
+ax = fig.add_subplot(111, projection='3d')
+
+# LDA 시각화
+import matplotlib.pyplot as plt
+df = Xabc_lda_df
+markers = ['o','x','^','h','D','s','.',',','v','<','>','1']
+labels = ['Sect1', 'Sect2', 'Sect3', 'Sect4', 'Sect5', 'Sect6', 'Sect7', 'Sect8', 'Sect9', 'Sect10', 'Sect11', 'Sect12']
+
+for i, mark in enumerate(markers):
+    X_i = df[df['target']== i+1]
+    target_i = labels[i]
+    X1 = X_i['lda_comp1']
+    X2 = X_i['lda_comp2']
+    X3 = X_i['lda_comp3']
+    ax.scatter(X1, X2, X3 , label=target_i)
+
+ax.set_xlabel('lda_component1')
+ax.set_ylabel('lda_component2')
+ax.set_zlabel('lda_component3')
+ax.legend()
+plt.show()
+
+
+
+
+
+'''
+
+
+#ANN
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+
+from keras.utils import to_categorical
+yyy=to_categorical(yy)
+yyy_te=to_categorical(yy_te)
+
+classifier = Sequential()
+
+
+
+#'leaky_relu' 'relu' 'elu'
+# https://yeomko.tistory.com/39 active funtion 
+# Adding the input layer and first hidden layer / Dense 노드의 수 
+# layer 값이 너무 많아도 gradient vanish를 유발할 수 있어서 조심 / input_dim 9개의 input 
+classifier.add(Dense(4, kernel_initializer='he_normal', activation = 'leaky_relu', input_dim = 3))
+# Adding the second hidden layer
+classifier.add(Dense(32, kernel_initializer='he_normal', activation = 'leaky_relu'))
+# Adding the third hidden layer
+# classifier.add(Dense(20, kernel_initializer='he_normal', activation = 'leaky_relu'))
+
+# Adding the output layer Dense 최종 아웃풋 층을 지정  18개(고장 위치 a,b,c) 값이 나와야함
+classifier.add(Dense(13, kernel_initializer='he_normal', activation = 'softmax'))
+classifier.summary()
+# Compiling the ANN
+classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+# Fitting the ANN to the Training set
+# yy 클래스이름 
+results=classifier.fit(X, yyy, batch_size = 10, epochs = 150, validation_split = 0.2)
+
+
+for i in range(150):
+
+    if results.history['val_accuracy'][i] > results.history['val_accuracy'][i-1]:
+         from keras.models import load_model
+         classifier.save('C:/Users/jhr96/Desktop/PYTHON/excel/HR')
+    else:
+         pass
+
+
+
+
+        #print(max(results.history['accuracy']))
+        #print(max(results.history['val_accuracy']))
+        #plt.plot(results.history['accuracy'])
+        #plt.ylabel('accuracy')
+        #plt.xlabel('epoch')
+        #plt.show()  
+
+
+
+print(max(results.history['accuracy']))
+print(max(results.history['val_accuracy']))
+plt.plot(results.history['accuracy'])
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.show()  
+
+loss_and_metrics = classifier.evaluate(X_te, yyy_te, batch_size=1)
+where = classifier.predict(X_te,batch_size=1)
+
+print('')
+print('loss_and_metrics : ' + str(loss_and_metrics))
+
+
+'''
